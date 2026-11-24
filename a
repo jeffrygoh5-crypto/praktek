@@ -1,0 +1,163 @@
+# Salin file ini menjadi .env untuk testing lokal (JANGAN di-commit ke GitHub)
+# Ambil dari Supabase: Connect -> Transaction pooler (port 6543)
+DATABASE_URL=postgresql://postgres.xxxxxxxx:PASSWORD@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
+SECRET_KEY=isi-dengan-string-acak-panjang
+
+.env
+venv/
+__pycache__/
+*.pyc
+local.db
+instance/
+.vercel
+
+"""
+Script untuk membuat user baru (password otomatis di-hash).
+Jalankan lokal:  python buat_user.py
+Pastikan file .env sudah berisi DATABASE_URL Supabase.
+"""
+from getpass import getpass
+
+from dotenv import load_dotenv
+load_dotenv()
+
+from werkzeug.security import generate_password_hash  # noqa: E402
+from api.index import app, db, User  # noqa: E402
+
+with app.app_context():
+    db.create_all()  # membuat tabel users jika belum ada
+    username = input("Username: ").strip()
+    nama = input("Nama lengkap: ").strip()
+    password = getpass("Password: ")
+
+    if User.query.filter_by(username=username).first():
+        print("Username sudah dipakai.")
+    else:
+        db.session.add(User(username=username, nama=nama,
+                            password_hash=generate_password_hash(password)))
+        db.session.commit()
+        print(f"User '{username}' berhasil dibuat.")
+
+-- DATA DEMO untuk mengisi grafik dashboard
+-- Jalankan di Supabase: SQL Editor -> New query -> paste -> Run
+-- Semua user demo memakai password: admin123
+
+insert into users (username, password_hash, nama, created_at) values
+ ('budi',   'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e', 'Budi Santoso',   now() - interval '6 days'),
+ ('siti',   'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e', 'Siti Rahma',     now() - interval '5 days'),
+ ('andi',   'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e', 'Andi Pratama',   now() - interval '4 days'),
+ ('dewi',   'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e', 'Dewi Lestari',   now() - interval '4 days'),
+ ('rizky',  'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e', 'Rizky Hidayat',  now() - interval '2 days'),
+ ('maya',   'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e', 'Maya Putri',     now() - interval '2 days'),
+ ('fajar',  'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e', 'Fajar Nugroho',  now() - interval '2 days'),
+ ('nina',   'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e', 'Nina Kartika',   now() - interval '1 days'),
+ ('yoga',   'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e', 'Yoga Saputra',   now()),
+ ('lina',   'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e', 'Lina Marlina',   now()),
+ ('lama1',  'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e', 'Hendra Wijaya',  now() - interval '20 days'),
+ ('lama2',  'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e', 'Agus Salim',     now() - interval '30 days')
+on conflict (username) do nothing;
+
+[project]
+name = "flask-login"
+version = "0.1.0"
+dependencies = [
+  "Flask==3.0.3",
+  "Flask-SQLAlchemy==3.1.1",
+  "psycopg[binary]>=3.2",
+  "python-dotenv==1.0.1",
+]
+
+[tool.vercel]
+entrypoint = "api.index:app"
+
+# Template Flask Login → Dashboard (Vercel + Supabase)
+
+Aplikasi sederhana: halaman login → dashboard. Data user disimpan di database online **Supabase (PostgreSQL)**, aplikasi di-hosting di **Vercel**.
+
+## Struktur Folder
+```
+api/
+  index.py            ← aplikasi Flask (routes, model, koneksi DB)
+  templates/
+    base.html         ← layout & CSS
+    login.html        ← halaman login
+    dashboard.html    ← halaman setelah login
+schema.sql            ← SQL pembuat tabel + user demo
+buat_user.py          ← script menambah user (password di-hash)
+requirements.txt
+pyproject.toml        ← konfigurasi Vercel (lokasi app Flask)
+.env.example
+```
+
+## Langkah 1 — Siapkan Database di Supabase
+1. Daftar di https://supabase.com → **New project** (simpan password database!).
+2. Buka **SQL Editor** → paste isi `schema.sql` → **Run**.
+3. Buka **Connect** → pilih **Transaction pooler** → salin connection string (port **6543**).
+   Ganti `[YOUR-PASSWORD]` dengan password database Anda.
+
+## Langkah 2 — Coba di Komputer Sendiri (opsional)
+```bash
+python -m venv venv
+venv\Scripts\activate          # Windows  (Mac/Linux: source venv/bin/activate)
+pip install -r requirements.txt
+copy .env.example .env         # lalu isi DATABASE_URL & SECRET_KEY
+python -c "from dotenv import load_dotenv; load_dotenv(); from api.index import app; app.run(debug=True)"
+```
+Buka http://127.0.0.1:5000 → login `admin` / `admin123`.
+
+## Langkah 3 — Deploy ke Vercel
+1. Upload project ke **GitHub** (file `.env` otomatis diabaikan oleh `.gitignore`).
+2. Di https://vercel.com → **Add New → Project** → import repo.
+3. Sebelum Deploy, buka **Environment Variables**, isi:
+   | Name | Value |
+   |---|---|
+   | `DATABASE_URL` | connection string Transaction pooler Supabase |
+   | `SECRET_KEY` | string acak panjang |
+4. Klik **Deploy**. Setelah selesai, buka URL `*.vercel.app` dan login.
+
+## Menambah User
+```bash
+python buat_user.py
+```
+Password otomatis di-hash. **Jangan pernah** insert password asli langsung ke tabel.
+
+## Troubleshooting
+| Masalah | Penyebab umum |
+|---|---|
+| `too many connections` / timeout | Memakai port 5432 (direct). Gunakan **Transaction pooler port 6543**. |
+| Error 500 di Vercel | `DATABASE_URL` belum diisi → cek *Settings → Environment Variables*, lalu **Redeploy**. Lihat detail di tab **Logs**. |
+| Login selalu gagal | Tabel/user belum dibuat → jalankan `schema.sql`. |
+| Tiba-tiba tidak bisa connect | Project Supabase free ter-*pause* karena tidak aktif → buka dashboard Supabase, klik **Restore**. |
+
+## Aturan Keamanan
+- Jangan commit file `.env` atau connection string ke GitHub.
+- Password selalu di-hash (`werkzeug.security`).
+- Ganti/hapus user demo `admin` setelah testing.
+
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+psycopg[binary]>=3.2
+python-dotenv==1.0.1
+
+-- Jalankan di Supabase: menu SQL Editor -> New query -> paste -> Run
+
+create table if not exists users (
+  id            serial primary key,
+  username      varchar(50)  unique not null,
+  password_hash varchar(255) not null,
+  nama          varchar(100),
+  created_at    timestamptz  default now()
+);
+
+-- Tutup akses API publik Supabase ke tabel ini (Flask tetap bisa akses)
+alter table users enable row level security;
+
+-- User demo -> username: admin | password: admin123
+-- (password sudah di-hash; ganti/hapus setelah testing)
+insert into users (username, password_hash, nama)
+values (
+  'admin',
+  'scrypt:32768:8:1$nimpqzuuSnxRDX6F$a382fa2bed5a9f45c0679b8970099afd09bdfafe06356332e620b115289fa4cb07d076f960087acec34a25e762ed15ea6c9f7a0b4a8ba58dbaf77c006a83bc4e',
+  'Administrator'
+)
+on conflict (username) do nothing;
